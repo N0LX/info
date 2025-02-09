@@ -30,8 +30,9 @@ router.get("/name", (request, response) => {
 });
 
 // POST: Add a new product
+// POST: Add a new product
 router.post("/add", (req, res) => {
-    const { product_name, seller_id, category_id, description, stock } = req.body;
+    const { product_name, seller_id, category_id, description, stock, price, image_url } = req.body;
 
     // Check if category_id exists in category table
     const categoryCheckStmt = `SELECT * FROM ${CATEGORY_TABLE} WHERE category_id = ?`;
@@ -43,10 +44,10 @@ router.post("/add", (req, res) => {
                 res.send(utils.createError("category_id does not exist"));
             } else {
                 const statement = `
-                    INSERT INTO ${PRODUCT_TABLE} (product_name, seller_id, category_id, description, stock)
-                    VALUES (?, ?, ?, ?, ?);
+                    INSERT INTO ${PRODUCT_TABLE} (product_name, seller_id, category_id, description, stock, price, image_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
                 `;
-                pool.execute(statement, [product_name, seller_id, category_id, description, stock], (err, result) => {
+                pool.execute(statement, [product_name, seller_id, category_id, description, stock, price, image_url], (err, result) => {
                     if (err) {
                         res.send(utils.createError(err.message));
                     } else {
@@ -85,17 +86,17 @@ router.get("/", (req, res) => {
 // PUT: Update product details (by seller)
 router.put("/update/:product_id", (req, res) => {
     const product_id = req.params.product_id;
-    const { product_name, description, stock, category_id, seller_id } = req.body;
+    const { product_name, description, stock, category_id, seller_id, price } = req.body;
 
     const statement = `
         UPDATE ${PRODUCT_TABLE}
-        SET product_name = ?, description = ?, stock = ?, category_id = ?
+        SET product_name = ?, description = ?, stock = ?, category_id = ?, price = ?
         WHERE product_id = ? AND seller_id = ?;
     `;
 
     pool.execute(
         statement,
-        [product_name, description, stock, category_id, product_id, seller_id],
+        [product_name, description, stock, category_id, price, product_id, seller_id],
         (err, result) => {
             if (err) {
                 res.send(utils.createError(err.message));

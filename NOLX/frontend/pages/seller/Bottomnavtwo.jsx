@@ -1,36 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { BottomNavigation } from "react-native-paper";
-import { Image } from 'react-native';
 
 import AddItem from "./AddItem";
 import Inventory from "./Inventory";
 import Sales from "./Sales";
 import SellDashboard from "./SellDashboard";
 
-export default function Bottomnavtwo({navigation}) {
-  const [index, setIndex] = React.useState(0);
-  const [routes] = React.useState([ 
-    { key: "selld", title: "SellDashboard", focusedIcon: "view-dashboard-outline" },
+export default function Bottomnavtwo({ navigation }) {
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: "selld", title: "Dashboard", focusedIcon: "view-dashboard-outline" },
     { key: "inventory", title: "Inventory", focusedIcon: "archive" },
     { key: "sales", title: "Sales", focusedIcon: "chart-donut-variant" },
-    { key: "additem", title: "AddItem", focusedIcon: "archive-plus" },
-    
+    { key: "additem", title: "Add Item", focusedIcon: "plus-box-outline" },
   ]);
 
-  const renderScene = ({ route }) => {
-    switch (route.key) {
-      case "selld":
-        return <SellDashboard />;
-      case "inventory":
-        return <Inventory />;
-      case "sales":
-        return <Sales />;
-      case "additem":
-        return <AddItem navigation={navigation}/>;
-      default:
-        return null;
-    }
-  };
+  const renderScene = BottomNavigation.SceneMap({
+    selld: () => <SellDashboard navigation={navigation} />,
+    inventory: () => <Inventory navigation={navigation} />,
+    sales: () => <Sales navigation={navigation} />,
+    additem: () => <AddItem navigation={navigation} />,
+  });
 
   return (
     <BottomNavigation

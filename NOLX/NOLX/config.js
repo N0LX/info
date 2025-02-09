@@ -5,6 +5,7 @@ module.exports = {
     PASSWORD: "root",
     DATABASE: "project",
     USER_TABLE: "Users",
+    PAYMENT_TABLE: "payment",
     Cart:"Cart",
     Orders:"Orders",
   PRODUCT_TABLE: 'product' , 

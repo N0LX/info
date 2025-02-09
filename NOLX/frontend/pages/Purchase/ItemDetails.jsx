@@ -1,39 +1,63 @@
-import {  View,StyleSheet } from 'react-native'
-import { StatusBar } from 'expo-status-bar';
-import React, { Component,useState } from 'react'
-import { Text, Button, TextInput, Icon,Searchbar } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { View, StyleSheet, Text } from 'react-native';
+import { Button } from 'react-native-paper';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useCart } from '../user/CartContext';
 
-export default function ItemDetails(props) {
-    const [searchQuery, setSearchQuery] = React.useState('');
-  const navigation = useNavigation(); 
-  const back = () => {
-    console.log('=> back')
-    navigation.goBack()
-  }
-  const tocart = () => {
-    console.log('=>Addtocart')
+export default function ItemDetails() {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { item } = route.params;
+  const { addToCart } = useCart();
 
-  }
-  const towishlist = () => {
-    console.log('=> Addtowishlist')
-  }
+  const toCart = () => {
+    addToCart(item);
+    console.log(`${item.product_name} added to cart`);
+  };
+
+  const toWishlist = () => {
+    console.log('Item added to wishlist');
+  };
+
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>{item.product_name}</Text>
+      <Text style={styles.price}>${item.price}</Text>
+      <Text style={styles.description}>{item.description}</Text>
 
-      <Text>item</Text>
-    <Button mode='contained' onPress={tocart}>Addtocart</Button>
-    <Button mode='contained' onPress={towishlist}>Addtowishlist</Button>
-    <Button mode='contained' onPress={back}>Back</Button>
+      <Button mode="contained" onPress={toCart} style={styles.button}>
+        Add to Cart
+      </Button>
+      <Button mode="contained" onPress={toWishlist} style={styles.button}>
+        Add to Wishlist
+      </Button>
+      <Button mode="contained" onPress={() => navigation.goBack()} style={styles.button}>
+        Back
+      </Button>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 20,
   },
-})
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  price: {
+    fontSize: 18,
+    color: 'green',
+    marginVertical: 10,
+  },
+  description: {
+    fontSize: 16,
+    marginVertical: 10,
+  },
+  button: {
+    marginVertical: 10,
+  },
+});

@@ -18,11 +18,11 @@ export default function ConfirmDetails({navigation}) {
   return (
      <View style={styles}>
           <Text>Item Details</Text>
-          <Text label="Name"></Text>
-          <Text label="Category"></Text>
-            <Text label="Specs."></Text>
-            <Text label="Price"></Text>
-            <Text label="Stock"></Text>
+          <Text label="Name">1</Text>
+          <Text label="Category">2</Text>
+            <Text label="Specs.">3</Text>
+            <Text label="Price">4</Text>
+            <Text label="Stock">5</Text>
 
             <Button onPress={Next}>Next</Button>
 

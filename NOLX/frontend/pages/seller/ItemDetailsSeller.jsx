@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { Component } from 'react'
 import { Text, Button, TextInput, Icon, Searchbar } from 'react-native-paper';
 
-export default function ItemDetails({navigation}) {
+export default function ItemDetailsSeller({navigation}) {
   const Next = () => {
     console.log('Next page')
     navigation.navigate('CDetails')

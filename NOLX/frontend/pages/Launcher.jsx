@@ -14,15 +14,18 @@ import SellDashboard from "./seller/SellDashboard";
 import ConfirmDetails from "./seller/ConfirmDetails";
 
 import OrderDetails from "./user/OrderDetails";
-import PaymentPage from "./Purchase/PaymentPage";
-import PurchaseForm from "./Purchase/PurchaseForm";
-import OrderConfirm from "./Purchase/OrderConfirm";
+import POrderDetails from "./Purchase/POrderDetails";
 import ItemDetails from "./Purchase/ItemDetails";
+import ItemDetailsSeller from "./seller/ItemDetailsSeller";
+import PaymentSuccess from "./Purchase/PaymentSuccess";
+
+import { CartProvider } from './user/CartContext';
 const Stack = createNativeStackNavigator();
 
 export default function Launcher() {
   return (
     <SafeAreaProvider>
+      <CartProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={login} />
@@ -32,10 +35,9 @@ export default function Launcher() {
           <Stack.Screen name="Odetail" component={OrderDetails} />
 
 
-          <Stack.Screen name="pay" component={PaymentPage} />
           <Stack.Screen name="item" component={ItemDetails} />
-          <Stack.Screen name="purchase" component={PurchaseForm} />
-          <Stack.Screen name="OConfirm" component={OrderConfirm} />
+          <Stack.Screen name="POrderDetails" component={POrderDetails} />
+          <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
 
           <Stack.Screen
             name="Home"
@@ -48,11 +50,12 @@ export default function Launcher() {
             options={{ headerShown: true }} 
           />
           <Stack.Screen name="SellDashboard" component={SellDashboard} />
-          <Stack.Screen name="IDetails" component={ItemDetails}/>
+          <Stack.Screen name="IDetails" component={ItemDetailsSeller}/>
           <Stack.Screen name="CDetails" component={ConfirmDetails}/>
           
         </Stack.Navigator>
       </NavigationContainer>
+      </CartProvider>
     </SafeAreaProvider>
   );
 }
