@@ -66,4 +66,62 @@ router.delete("/remove", (request, response) => {
     });
 });
 
+// Fetch wishlist items using JOIN
+router.get('/list/:userId', async (req, res) => {
+    const userId = req.params.userId; // Fetch userId from URL params (e.g., /list/1)
+
+    if (!userId) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'User ID is required' 
+      });
+    }
+
+    try {
+      const query = `
+        SELECT p.product_id, p.product_name, p.price, p.image_url
+        FROM product p
+        INNER JOIN wishlist w ON p.product_id = w.product_id
+        WHERE w.user_id = ?;
+      `;
+  
+      // Execute query using your DB connection pool
+      pool.execute(query, [userId], (err, rows) => {
+        if (err) {
+          console.error("Error fetching wishlist details:", err);
+          return res.status(500).json({ 
+            status: 'error', 
+            message: 'Internal server error' 
+          });
+        }
+  
+        if (rows.length === 0) {
+          return res.status(404).json({ 
+            status: 'error', 
+            message: 'No items found in wishlist' 
+          });
+        }
+  
+        // Send response with product data
+        res.json({
+          status: 'success',
+          data: rows.map(row => ({
+            product_id: row.product_id,
+            product_name: row.product_name,
+            price: row.price,
+            image_url: row.image_url
+          }))
+        });
+      });
+    } catch (error) {
+      console.error("Error fetching wishlist details:", error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: 'Internal server error' 
+      });
+    }
+});
+
+
+  
 module.exports = router;

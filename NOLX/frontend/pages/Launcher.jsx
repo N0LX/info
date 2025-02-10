@@ -11,12 +11,10 @@ import Seller from "./user/Seller";
 import Bottomnavtwo from "./seller/Bottomnavtwo";
 import WishlistComponent from "./user/Wishlist";
 import SellDashboard from "./seller/SellDashboard";
-import ConfirmDetails from "./seller/ConfirmDetails";
 
 import OrderDetails from "./user/OrderDetails";
 import POrderDetails from "./Purchase/POrderDetails";
 import ItemDetails from "./Purchase/ItemDetails";
-import ItemDetailsSeller from "./seller/ItemDetailsSeller";
 import PaymentSuccess from "./Purchase/PaymentSuccess";
 
 import { CartProvider } from './user/CartContext';
@@ -50,8 +48,6 @@ export default function Launcher() {
             options={{ headerShown: true }} 
           />
           <Stack.Screen name="SellDashboard" component={SellDashboard} />
-          <Stack.Screen name="IDetails" component={ItemDetailsSeller}/>
-          <Stack.Screen name="CDetails" component={ConfirmDetails}/>
           
         </Stack.Navigator>
       </NavigationContainer>

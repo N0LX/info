@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity,Image } from 'react-native';
 import { Text, Button, IconButton, Searchbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -56,6 +56,11 @@ export default function Dashboard() {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.itemBox} onPress={() => handleItemPress(item)}>
+       <Image 
+      source={{ uri: item.image_url }} 
+      style={styles.itemImage} 
+      resizeMode="cover" 
+    />
       <Text style={styles.itemName}>{item.product_name}</Text>
       <Text style={styles.itemPrice}>${item.price}</Text>
     </TouchableOpacity>
@@ -210,4 +215,11 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
   },
+  itemImage: {
+    width: 100, // Adjust size as needed
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  
 });

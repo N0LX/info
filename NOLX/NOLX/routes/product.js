@@ -30,7 +30,6 @@ router.get("/name", (request, response) => {
 });
 
 // POST: Add a new product
-// POST: Add a new product
 router.post("/add", (req, res) => {
     const { product_name, seller_id, category_id, description, stock, price, image_url } = req.body;
 
