@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, Button, Searchbar, Card } from 'react-native-paper';
+import { Text, Button, Card, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function MyOrders() {
   const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
   const [orders, setOrders] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -33,7 +34,7 @@ export default function MyOrders() {
     }
   }, [userId]);
 
-    const fetchOrders = async () => {
+  const fetchOrders = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`http://localhost:1111/order/user/${userId}`, {
@@ -42,32 +43,48 @@ export default function MyOrders() {
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>My Orders</Text>
-      <FlatList
-  data={orders}
-  keyExtractor={(item) => item.order_id.toString()}
-  renderItem={({ item }) => (
+  const renderOrderItem = ({ item }) => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text>Order ID: {item.order_id}</Text>
-        <Text>Order Date: {item.order_date}</Text>
-        <Text>Status: {item.order_status}</Text>
-        <Text>Items: {item.items.map(i => `${i.product_name} (x${i.quantity})`).join(', ')}</Text>
+        <Text style={styles.orderId}>Order ID: {item.order_id}</Text>
+        <Text style={styles.orderDate}>📅 {item.order_date}</Text>
+        <Text style={styles.orderStatus}>🟢 Status: {item.order_status}</Text>
+        <Text style={styles.items}>
+          🛒 Items: {item.items.map(i => `${i.product_name} (x${i.quantity})`).join(', ')}
+        </Text>
       </Card.Content>
       <Card.Actions>
-      <Button onPress={() => navigation.navigate('Odetail', { order_id: item.order_id })}>
-      Details
+        <Button mode="contained" onPress={() => navigation.navigate('Odetail', { order_id: item.order_id })}>
+          View Details
         </Button>
       </Card.Actions>
     </Card>
-  )}
-/>
+  );
 
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>📦 My Orders</Text>
+      
+      {loading ? (
+        <ActivityIndicator animating={true} size="large" style={styles.loader} />
+      ) : orders.length === 0 ? (
+        <View style={styles.noOrdersContainer}>
+          <MaterialCommunityIcons name="package-variant-closed" size={80} color="#888" />
+          <Text style={styles.noOrdersText}>Nothing to see here!</Text>
+          <Text style={styles.subText}>You haven’t placed any orders yet.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => item.order_id.toString()}
+          renderItem={renderOrderItem}
+        />
+      )}
     </View>
   );
 }
@@ -75,17 +92,62 @@ export default function MyOrders() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8F8F8',
     padding: 10,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 15,
     textAlign: 'center',
+    color: '#333',
+  },
+  loader: {
+    marginTop: 50,
   },
   card: {
-    marginVertical: 5,
-    padding: 10,
+    marginVertical: 8,
+    borderRadius: 10,
+    elevation: 3,
+    backgroundColor: '#fff',
+  },
+  orderId: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  orderDate: {
+    fontSize: 16,
+    color: '#555',
+    marginTop: 4,
+  },
+  orderStatus: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 6,
+  },
+  items: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 6,
+  },
+  noOrdersContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noOrdersText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#555',
+    marginTop: 10,
+  },
+  subText: {
+    fontSize: 16,
+    color: '#777',
+    marginTop: 5,
+    textAlign: 'center',
   },
 });
+

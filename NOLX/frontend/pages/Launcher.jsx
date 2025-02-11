@@ -12,6 +12,7 @@ import Bottomnavtwo from "./seller/Bottomnavtwo";
 import WishlistComponent from "./user/Wishlist";
 import SellDashboard from "./seller/SellDashboard";
 
+import AddItem from "./seller/AddItem";
 import OrderDetails from "./user/OrderDetails";
 import POrderDetails from "./Purchase/POrderDetails";
 import ItemDetails from "./Purchase/ItemDetails";
@@ -31,6 +32,7 @@ export default function Launcher() {
           <Stack.Screen name="wishlist" component={WishlistComponent}/>
           <Stack.Screen name="Seller" component={Seller} />
           <Stack.Screen name="Odetail" component={OrderDetails} />
+          <Stack.Screen name="addItem" component={AddItem} />
 
 
           <Stack.Screen name="item" component={ItemDetails} />
@@ -48,7 +50,11 @@ export default function Launcher() {
             options={{ headerShown: true }} 
           />
           <Stack.Screen name="SellDashboard" component={SellDashboard} />
-          
+          <Stack.Screen
+            name="additem"
+            component={Bottomnavtwo}
+            options={{ headerShown: true }} 
+          />
         </Stack.Navigator>
       </NavigationContainer>
       </CartProvider>

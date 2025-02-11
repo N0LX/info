@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db2");  
+const pool = require("../db");  
 const { PAYMENT_TABLE } = require("../config");
 
 // Get payment details by transaction_id
@@ -32,7 +32,7 @@ router.post('/add', async (req, res) => {
       const query = `INSERT INTO ${PAYMENT_TABLE} (payment_method, amount, upi_id, card_id, payment_status) VALUES (?, ?, ?, ?, ?)`;
       const values = [method, amount, upi_id || null, card_id || null, "Pending"];
 
-      const [result] = await pool.query(query, values);
+      const [result] = await pool.query(query, values); // ✅ Now this will work
       console.log("Inserted Payment:", result);
 
       res.status(201).json({ success: true, transaction_id: result.insertId });

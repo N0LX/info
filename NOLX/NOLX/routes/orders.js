@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db2");
+const pool = require("../db");
 
 // ✅ Get all orders
 router.get('/', async (req, res) => {

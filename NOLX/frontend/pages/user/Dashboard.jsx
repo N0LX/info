@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity,Image } from 'react-native';
-import { Text, Button, IconButton, Searchbar } from 'react-native-paper';
+import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Text, Button, IconButton, Searchbar, Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
@@ -13,16 +13,16 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [todaysPicks, setTodaysPicks] = useState([]);
   const [recentlyAdded, setRecentlyAdded] = useState([]);
+  const [numColumns, setNumColumns] = useState(2); // ✅ Define numColumns
 
   const navigation = useNavigation();
 
-  // Fetch products from backend API
   useEffect(() => {
     axios.get('http://localhost:1111/product')  
       .then((response) => {
-        const products = response.data.data; 
-        setTodaysPicks(products.slice(0, 6)); // Max 6 items in Today's Picks
-        setRecentlyAdded(products); // Show all products in Recently Added
+        const products = response.data.data;
+        setTodaysPicks(products.slice(0, 6));
+        setRecentlyAdded(products);
       })
       .catch((error) => {
         console.error("Error fetching product data:", error);
@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    const filtered = [...todaysPicks, ...recentlyAdded].filter(item => 
+    const filtered = [...todaysPicks, ...recentlyAdded].filter(item =>
       item.product_name.toLowerCase().includes(query.toLowerCase())
     );
 
@@ -55,32 +55,37 @@ export default function Dashboard() {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.itemBox} onPress={() => handleItemPress(item)}>
-       <Image 
-      source={{ uri: item.image_url }} 
-      style={styles.itemImage} 
-      resizeMode="cover" 
-    />
-      <Text style={styles.itemName}>{item.product_name}</Text>
-      <Text style={styles.itemPrice}>${item.price}</Text>
+    <TouchableOpacity style={styles.cardContainer} onPress={() => handleItemPress(item)}>
+      <Card style={styles.card}>
+        <Image source={{ uri: item.image_url }} style={styles.itemImage} resizeMode="cover" />
+        <View style={styles.textContainer}>
+          <Text style={styles.itemName}>{item.product_name}</Text>
+          <Text style={styles.itemPrice}>₹{item.price}</Text>
+        </View>
+      </Card>
     </TouchableOpacity>
   );
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Home</Text>
+      <Text style={styles.header}>🏡 Home</Text>
+
+      {/* Search Bar */}
       <Searchbar
-        placeholder="Search"
+        placeholder="Search products..."
         onChangeText={handleSearch}
         value={searchQuery}
         style={styles.searchbar}
       />
+
+      {/* Sorting Button */}
       <View style={styles.filterContainer}>
-        <Button onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-          {sortOrder === 'asc' ? 'Sort by Price: Ascending' : 'Sort by Price: Descending'}
+        <Button mode="contained" onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+          {sortOrder === 'asc' ? 'Sort: Low to High' : 'Sort: High to Low'}
         </Button>
       </View>
 
+      {/* Search Results */}
       {showSearchResults && (
         <View style={styles.searchResultsContainer}>
           <IconButton
@@ -93,47 +98,49 @@ export default function Dashboard() {
             data={filteredResults}
             renderItem={renderItem}
             keyExtractor={(item) => item.product_id.toString()}
-            contentContainerStyle={styles.flatListContainer}
           />
         </View>
       )}
 
-      {/* Today's Picks Section (Max 6 items) */}
+
+      {/* Today's Picks */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Picks</Text>
+          <Text style={styles.sectionTitle}>🔥 Today's Picks</Text>
           <IconButton
-            icon={showMorePicks ? 'minus' : 'plus'}
-            size={20}
+            icon={showMorePicks ? 'chevron-up' : 'chevron-down'}
+            size={24}
             onPress={() => setShowMorePicks(!showMorePicks)}
           />
         </View>
         <FlatList
-          data={todaysPicks.slice(0, showMorePicks ? todaysPicks.length : 3)}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.product_id.toString()}
-          horizontal={!showMorePicks}
-          numColumns={showMorePicks ? 2 : 1}
-          key={showMorePicks ? 'more' : 'less'}
-        />
+  data={todaysPicks.slice(0, showMorePicks ? todaysPicks.length : 3)}
+  renderItem={renderItem}
+  keyExtractor={(item) => item.product_id.toString()}
+  horizontal={!showMorePicks} // Horizontal only when `showMorePicks` is false
+  numColumns={showMorePicks ? 2 : 1} // Apply numColumns only when not horizontal
+  key={showMorePicks ? 'grid' : 'list'} // Forces re-render when switching layout
+/>
+
       </View>
 
-      {/* Recently Added Section (Show all items) */}
+      {/* Recently Added */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recently Added</Text>
+          <Text style={styles.sectionTitle}>🆕 Recently Added</Text>
           <IconButton
-            icon={showMoreRecentlyAdded ? 'minus' : 'plus'}
-            size={20}
+            icon={showMoreRecentlyAdded ? 'chevron-up' : 'chevron-down'}
+            size={24}
             onPress={() => setShowMoreRecentlyAdded(!showMoreRecentlyAdded)}
           />
         </View>
         <FlatList
-  data={recentlyAdded.slice(0, showMoreRecentlyAdded ? recentlyAdded.length : 4)} // Show only 4 items when collapsed
+  data={recentlyAdded.slice(0, showMoreRecentlyAdded ? recentlyAdded.length : 4)}
   renderItem={renderItem}
   keyExtractor={(item) => item.product_id.toString()}
-  numColumns={2} // Always in grid format
-  key={showMoreRecentlyAdded ? 'more' : 'less'} // Avoid unnecessary re-renders
+  horizontal={!showMoreRecentlyAdded} // Horizontal only when `showMorePicks` is false
+  numColumns={showMoreRecentlyAdded ? 2 : 1} // Apply numColumns only when not horizontal
+  key={showMoreRecentlyAdded ? 'grid' : 'list'} // Forces re-render when switching layout
 />
       </View>
     </ScrollView>
@@ -143,19 +150,32 @@ export default function Dashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
+    backgroundColor: '#F8F9FA',
+    padding: 12,
   },
   header: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
+    color: '#333',
   },
   searchbar: {
-    marginBottom: 10,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  filterContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
   },
   section: {
     marginBottom: 20,
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -166,60 +186,44 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#333',
   },
- 
-  itemName: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  itemPrice: {
-    fontSize: 14,
-    color: 'green',
-    marginTop: 5,
-  },
-  flatListContainer: {
-    backgroundColor: '#89E5FCFF',
-    justifyContent: 'center',
+  cardContainer: {
+    flex: 1,
     alignItems: 'center',
-    alignSelf: 'center',
-    flexGrow: 1, // Ensures items take full available space
+    marginBottom: 10,
   },
-  itemBox: {
-    backgroundColor: '#B1DDF2FF',
-    padding: 20,
-    margin: 10,
-    width: 150, // Adjust width for better alignment
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    alignSelf: 'center', // Ensures individual items are centered
-  },
-  searchResultsContainer: {
-    position: 'absolute',
-    top: 100,
-    left: 10,
-    right: 10,
-    backgroundColor: 'white',
+  card: {
+    width: 160,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    zIndex: 10,
-    maxHeight: 200,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
   },
   itemImage: {
-    width: 100, // Adjust size as needed
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: 8,
-    marginBottom: 10,
   },
-  
+  textContainer: {
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'center',
+  },
+  itemPrice: {
+    fontSize: 14,
+    color: '#28A745',
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
 });
+

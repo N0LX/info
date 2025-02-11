@@ -9,85 +9,93 @@ const bcrypt = require("bcrypt");
 const SECRET_KEY = "aditya";
 
 // Login API
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const statement = `SELECT * FROM ${USER_TABLE} WHERE email = ?`;
+    let conn;
 
-    pool.query(statement, [email], (err, results) => {
-        if (err) {
-            console.error("Database Error:", err);
-            return res.status(500).json({ success: false, message: "Internal Server Error" });
-        }
+    try {
+        conn = await pool.getConnection();
+        const [results] = await conn.query(statement, [email]);
 
         if (results.length > 0) {
             const user = results[0];
 
             // Compare hashed password
-            bcrypt.compare(password, user.password, (err, match) => {
-                if (err) return res.status(500).json({ success: false, message: "Error comparing passwords" });
-
-                if (match) {
-                    const token = jwt.sign({ email: user.email, id: user.user_id }, SECRET_KEY, { expiresIn: "1h" });
-                    return res.json({ success: true, token, user });
-                } else {
-                    return res.status(401).json({ success: false, message: "Invalid credentials" });
-                }
-            });
+            const match = await bcrypt.compare(password, user.password);
+            if (match) {
+                const token = jwt.sign({ email: user.email, id: user.user_id }, SECRET_KEY, { expiresIn: "1h" });
+                return res.json({ success: true, token, user });
+            } else {
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
         } else {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
-    });
+    } catch (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    } finally {
+        if (conn) conn.release();
+    }
 });
 
 // Register API
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
     const { name, password, email, phone, role, location } = req.body;
 
     if (!name || !password || !email || !phone || !location) {
         return res.status(400).json(utils.createError("All fields are required"));
     }
 
-    // Hash password before saving
-    bcrypt.hash(password, 10, (err, hash) => {
-        if (err) return res.status(500).json(utils.createError("Error hashing password"));
-
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const hash = await bcrypt.hash(password, 10);
         const statement = `INSERT INTO ${USER_TABLE} (name, password, email, phone, role, location) VALUES (?, ?, ?, ?, ?, ?)`;
+        await conn.query(statement, [name, hash, email, phone, role || "User", location]);
 
-        pool.query(statement, [name, hash, email, phone, role || "User", location], (err, result) => {
-            if (err) return res.status(500).json(utils.createError(err.message));
-            return res.json(utils.createSuccess("Registered successfully."));
-        });
-    });
+        return res.json(utils.createSuccess("Registered successfully."));
+    } catch (err) {
+        return res.status(500).json(utils.createError(err.message));
+    } finally {
+        if (conn) conn.release();
+    }
 });
 
 // Get User by ID
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
     const userId = req.params.id;
     const statement = `SELECT * FROM ${USER_TABLE} WHERE user_id = ?`;
+    let conn;
 
-    pool.query(statement, [userId], (err, result) => {
-        if (err) return res.status(500).json(utils.createError(err.message));
-
+    try {
+        conn = await pool.getConnection();
+        const [result] = await conn.query(statement, [userId]);
         if (result.length > 0) {
             return res.json(utils.createSuccess(result[0]));
         } else {
             return res.status(404).json(utils.createError("User not found."));
         }
-    });
+    } catch (err) {
+        return res.status(500).json(utils.createError(err.message));
+    } finally {
+        if (conn) conn.release();
+    }
 });
 
 // Update User API
 router.put("/:id", async (req, res) => {
+    const userId = req.params.id;
+    const { name, password, email, phone, role, location } = req.body;
+
+    if (!name && !password && !email && !phone && !role && !location) {
+        return res.status(400).json(utils.createError("No update fields provided."));
+    }
+
+    let conn;
     try {
-        const userId = req.params.id;
-        const { name, password, email, phone, role, location } = req.body;
-
-        // Check if at least one field is provided for update
-        if (!name && !password && !email && !phone && !role && !location) {
-            return res.status(400).json(utils.createError("No update fields provided."));
-        }
-
-        // Hash password only if a new one is provided
+        conn = await pool.getConnection();
         let updatePassword = password ? await bcrypt.hash(password, 10) : null;
 
         const statement = `
@@ -102,46 +110,45 @@ router.put("/:id", async (req, res) => {
             WHERE user_id = ?;
         `;
 
-        pool.query(
-            statement,
-            [name, updatePassword, email, phone, role, location, userId],
-            (err, result) => {
-                if (err) {
-                    console.error("Database Update Error:", err);
-                    return res.status(500).json(utils.createError("Database update failed."));
-                }
-                if (result.affectedRows === 0) {
-                    return res.status(404).json(utils.createError("User not found."));
-                }
-                return res.json(utils.createSuccess("User details updated successfully."));
-            }
-        );
+        const [result] = await conn.query(statement, [name, updatePassword, email, phone, role, location, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json(utils.createError("User not found."));
+        }
+
+        return res.json(utils.createSuccess("User details updated successfully."));
     } catch (error) {
-        console.error("Update User API Error:", error);
         return res.status(500).json(utils.createError("Internal server error."));
+    } finally {
+        if (conn) conn.release();
     }
 });
 
 // Delete User API
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
     const userId = req.params.id;
     const statement = `DELETE FROM ${USER_TABLE} WHERE user_id = ?`;
+    let conn;
 
-    pool.query(statement, [userId], (err, result) => {
-        if (err) return res.status(500).json(utils.createError(err.message));
-
+    try {
+        conn = await pool.getConnection();
+        const [result] = await conn.query(statement, [userId]);
         if (result.affectedRows > 0) {
             return res.json(utils.createSuccess("User deleted successfully."));
         } else {
             return res.status(404).json(utils.createError("User not found."));
         }
-    });
+    } catch (err) {
+        return res.status(500).json(utils.createError(err.message));
+    } finally {
+        if (conn) conn.release();
+    }
 });
 
 // Middleware to Authenticate Token
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1]; // Extract Bearer token
+    const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) return res.status(401).json({ success: false, message: "Access Denied" });
 
@@ -153,7 +160,8 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-router.post("/verify-password", authenticateToken, (req, res) => {
+// Verify Password API
+router.post("/verify-password", authenticateToken, async (req, res) => {
     const { userId, password } = req.body;
 
     if (!userId || !password) {
@@ -161,27 +169,29 @@ router.post("/verify-password", authenticateToken, (req, res) => {
     }
 
     const statement = `SELECT password FROM ${USER_TABLE} WHERE user_id = ?`;
+    let conn;
 
-    pool.query(statement, [userId], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
+    try {
+        conn = await pool.getConnection();
+        const [result] = await conn.query(statement, [userId]);
 
         if (result.length > 0) {
             const hashedPassword = result[0].password;
+            const match = await bcrypt.compare(password, hashedPassword);
 
-            bcrypt.compare(password, hashedPassword, (err, match) => {
-                if (err) return res.status(500).json({ success: false, message: "Error comparing passwords" });
-
-                if (match) {
-                    return res.json({ success: true, message: "Password verified" });
-                } else {
-                    return res.status(401).json({ success: false, message: "Invalid password" });
-                }
-            });
+            if (match) {
+                return res.json({ success: true, message: "Password verified" });
+            } else {
+                return res.status(401).json({ success: false, message: "Invalid password" });
+            }
         } else {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-    });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    } finally {
+        if (conn) conn.release();
+    }
 });
-
 
 module.exports = router;

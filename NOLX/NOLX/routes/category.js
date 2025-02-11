@@ -1,135 +1,107 @@
 const express = require("express");
+const cors = require("cors");
 const router = express.Router();
+const { CATEGORY_TABLE } = require("../config");
 const pool = require("../db");
 const utils = require("../utils");
-const { CATEGORY_TABLE } = require("../config");
 
-// Search category by name
-router.get("/:name", (request, response) => {
-    const { name } = request.query;
+router.use(cors()); // Enable CORS globally
 
-    console.log("Searching for category with name:", name);
-
-    const statement = `SELECT * FROM ${CATEGORY_TABLE} WHERE category_name LIKE ?`;
-
-    pool.execute(statement, [`%${name}%`], (err, result) => {
-        if (err) {
-            response.send(utils.createError(err.message));
-        } else {
-            console.log("Query result:", result);
-
-            if (result.length === 0) {
-                response
-                    .status(404)
-                    .send(utils.createError("No category found with this name"));
-            } else {
-                response.send(utils.createSuccess(result));
-            }
+// ✅ GET: Fetch all categories
+router.get("/all", async (req, res) => {
+    try {
+        const [results] = await pool.execute(`SELECT * FROM ${CATEGORY_TABLE}`);
+        if (results.length === 0) {
+            return res.status(404).json(utils.createError("No categories found"));
         }
-    });
-});
-
-// POST: Add a new category
-router.post("/add", (req, res) => {
-    const { category_name, product_id } = req.body;
-
-    const statement = `
-        INSERT INTO ${CATEGORY_TABLE} (category_name, product_id)
-        VALUES (?, ?);
-    `;
-
-    pool.execute(statement, [category_name, product_id], (err, result) => {
-        if (err) {
-            res.send(utils.createError(err.message));
-        } else {
-            res.send(utils.createSuccess("Category added successfully."));
-        }
-    });
-});
-
-// GET: Fetch categories by product_id
-router.get("/", (req, res) => {
-    const { product_id } = req.query;
-
-    let statement = `SELECT * FROM ${CATEGORY_TABLE}`;
-    const params = [];
-
-    if (product_id) {
-        statement += " WHERE product_id = ?";
-        params.push(product_id);
+        console.log("✅ Categories Retrieved:", results);
+        res.json(utils.createSuccess(results));
+    } catch (err) {
+        console.error("❌ Error executing query:", err.message);
+        res.status(500).json(utils.createError(err.message));
     }
+});
 
-    pool.execute(statement, params, (err, results) => {
-        if (err) {
-            res.send(utils.createError(err.message));
+// ✅ GET: Search category by name
+router.get("/name/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        console.log("Searching for category:", name);
+
+        const [result] = await pool.execute(
+            `SELECT * FROM ${CATEGORY_TABLE} WHERE category_name LIKE ?`,
+            [`%${name}%`]
+        );
+
+        if (result.length === 0) {
+            return res.status(404).json(utils.createError("No category found"));
+        }
+
+        res.json(utils.createSuccess(result));
+    } catch (err) {
+        res.status(500).json(utils.createError(err.message));
+    }
+});
+
+// ✅ POST: Add a new category
+router.post("/add", async (req, res) => {
+    try {
+        const { category_name } = req.body;
+
+        if (!category_name) {
+            return res.status(400).json(utils.createError("Category name is required"));
+        }
+
+        await pool.execute(
+            `INSERT INTO ${CATEGORY_TABLE} (category_name) VALUES (?)`,
+            [category_name]
+        );
+
+        res.json(utils.createSuccess("Category added successfully."));
+    } catch (err) {
+        res.status(500).json(utils.createError(err.message));
+    }
+});
+
+// ✅ PUT: Update category
+router.put("/update/:category_id", async (req, res) => {
+    try {
+        const { category_id } = req.params;
+        const { category_name } = req.body;
+
+        const [result] = await pool.execute(
+            `UPDATE ${CATEGORY_TABLE} SET category_name = ? WHERE category_id = ?`,
+            [category_name, category_id]
+        );
+
+        if (result.affectedRows > 0) {
+            res.json(utils.createSuccess("Category updated successfully."));
         } else {
-            res.send(utils.createSuccess(results));
+            res.status(404).json(utils.createError("Category not found."));
         }
-    });
+    } catch (err) {
+        res.status(500).json(utils.createError(err.message));
+    }
 });
 
-// PUT: Update category details
-router.put("/update/:category_id", (req, res) => {
-    const category_id = req.params.category_id;
-    const { category_name, product_id } = req.body;
+// ✅ DELETE: Delete category
+router.delete("/delete/:category_id", async (req, res) => {
+    try {
+        const { category_id } = req.params;
 
-    const statement = `
-        UPDATE ${CATEGORY_TABLE}
-        SET category_name = ?, product_id = ?
-        WHERE category_id = ?;
-    `;
+        const [result] = await pool.execute(
+            `DELETE FROM ${CATEGORY_TABLE} WHERE category_id = ?`,
+            [category_id]
+        );
 
-    pool.execute(
-        statement,
-        [category_name, product_id, category_id],
-        (err, result) => {
-            if (err) {
-                res.send(utils.createError(err.message));
-            } else {
-                if (result.affectedRows > 0) {
-                    res.send(utils.createSuccess("Category updated successfully."));
-                } else {
-                    res.send(utils.createError("Category not found or unauthorized action."));
-                }
-            }
-        }
-    );
-});
-
-// DELETE: Delete a category
-router.delete("/delete/:category_id", (req, res) => {
-    const category_id = req.params.category_id;
-
-    const statement = `
-        DELETE FROM ${CATEGORY_TABLE}
-        WHERE category_id = ?;
-    `;
-
-    pool.execute(statement, [category_id], (err, result) => {
-        if (err) {
-            res.send(utils.createError(err.message));
+        if (result.affectedRows > 0) {
+            res.json(utils.createSuccess("Category deleted successfully."));
         } else {
-            if (result.affectedRows > 0) {
-                res.send(utils.createSuccess("Category deleted successfully."));
-            } else {
-                res.send(utils.createError("Category not found or unauthorized action."));
-            }
+            res.status(404).json(utils.createError("Category not found."));
         }
-    });
+    } catch (err) {
+        res.status(500).json(utils.createError(err.message));
+    }
 });
-
-// GET: Get all categories
-router.get("/all", (req, res) => {
-    const statement = `SELECT * FROM ${CATEGORY_TABLE}`;
-
-    pool.execute(statement, [], (err, results) => {
-        if (err) {
-            res.send(utils.createError(err.message));
-        } else {
-            res.send(utils.createSuccess(results));
-        }
-    });
-});
-
 
 module.exports = router;

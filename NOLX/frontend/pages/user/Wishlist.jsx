@@ -1,6 +1,6 @@
 import { View, StyleSheet, FlatList, Image } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { Text, Button, Searchbar } from 'react-native-paper';
+import { Text, Button, Searchbar, Card, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -35,10 +35,10 @@ export default function WishlistComponent(props) {
       const result = await response.json();
 
       if (result.status === 'success') {
-        setWishlistItems(result.data);  // Set fetched wishlist items with product details
-        setFilteredWishlistItems(result.data); // Initialize filtered items with all wishlist items
+        setWishlistItems(result.data);
+        setFilteredWishlistItems(result.data);
       } else {
-        console.error(result.message);  // Log if there are no items
+        console.error(result.message);
       }
     } catch (error) {
       console.error('Error fetching wishlist details:', error);
@@ -53,7 +53,7 @@ export default function WishlistComponent(props) {
       );
       setFilteredWishlistItems(filteredItems);
     } else {
-      setFilteredWishlistItems(wishlistItems); // Reset to all items if search query is empty
+      setFilteredWishlistItems(wishlistItems);
     }
   }, [searchQuery, wishlistItems]);
 
@@ -64,20 +64,8 @@ export default function WishlistComponent(props) {
   }, [userId]);
 
   const back = () => {
-    console.log('=> back');
     navigation.goBack();
   };
-
-  const renderWishlistItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <Image source={{ uri: item.image_url }} style={styles.productImage} />
-      <View style={styles.productDetails}>
-        <Text style={styles.productName}>{item.product_name}</Text>
-        <Text style={styles.productPrice}>₹{item.price}</Text>
-        <Button mode="contained" onPress={() => handleRemoveFromWishlist(item.product_id)}>Remove</Button>
-      </View>
-    </View>
-  );
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
@@ -95,8 +83,6 @@ export default function WishlistComponent(props) {
       const result = await response.json();
 
       if (result.status === 'success') {
-        console.log('Removed from wishlist');
-        // Remove the item from the local state
         setWishlistItems(prevItems => prevItems.filter(item => item.product_id !== productId));
         setFilteredWishlistItems(prevItems => prevItems.filter(item => item.product_id !== productId));
       } else {
@@ -107,13 +93,32 @@ export default function WishlistComponent(props) {
     }
   };
 
+  const renderWishlistItem = ({ item }) => (
+    <Card style={styles.card}>
+      <View style={styles.cardContent}>
+        <Image source={{ uri: item.image_url }} style={styles.productImage} />
+        <View style={styles.productDetails}>
+          <Text style={styles.productName}>{item.product_name}</Text>
+          <Text style={styles.productPrice}>₹{item.price}</Text>
+        </View>
+        <IconButton 
+          icon="heart-off" 
+          size={24} 
+          onPress={() => handleRemoveFromWishlist(item.product_id)}
+          style={styles.removeButton}
+        />
+      </View>
+    </Card>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Wishlist</Text>
       <Searchbar
-        placeholder="Search"
+        placeholder="Search for products"
         onChangeText={setSearchQuery}
         value={searchQuery}
+        style={styles.searchBar}
       />
       <FlatList
         data={filteredWishlistItems}
@@ -121,7 +126,9 @@ export default function WishlistComponent(props) {
         keyExtractor={item => item.product_id.toString()}
         contentContainerStyle={styles.list}
       />
-      <Button mode="contained" onPress={back}>Back</Button>
+      <Button mode="contained" onPress={back} style={styles.backButton}>
+        Back
+      </Button>
     </View>
   );
 }
@@ -129,33 +136,39 @@ export default function WishlistComponent(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
+    backgroundColor: '#F2F2F2',
+    padding: 15,
   },
   title: {
     fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#333',
+  },
+  searchBar: {
     marginBottom: 10,
+    borderRadius: 8,
   },
   list: {
     flexGrow: 1,
-    width: '100%',
-    paddingHorizontal: 10,
   },
-  itemContainer: {
+  card: {
+    marginBottom: 10,
+    borderRadius: 10,
+    elevation: 3,  // Adds a subtle shadow effect
+    backgroundColor: '#fff',
+    padding: 10,
+  },
+  cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    backgroundColor: '#f8f8f8',
-    padding: 10,
-    borderRadius: 8,
   },
   productImage: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 8,
-    marginRight: 10,
+    marginRight: 15,
   },
   productDetails: {
     flex: 1,
@@ -164,10 +177,19 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
   },
   productPrice: {
     fontSize: 16,
-    color: '#555',
-    marginVertical: 5,
+    color: '#777',
+    marginTop: 4,
+  },
+  removeButton: {
+    backgroundColor: '#ff4d4d',
+    borderRadius: 8,
+  },
+  backButton: {
+    marginTop: 15,
   },
 });
+
