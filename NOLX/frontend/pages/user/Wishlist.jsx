@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Text, Button, Searchbar, Card, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+const URL='https://info-bxcl.onrender.com'
 
 export default function WishlistComponent(props) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,7 +32,7 @@ export default function WishlistComponent(props) {
   // Fetch Wishlist Items using the list API based on userId
   const fetchWishlist = async () => {
     try {
-      const response = await fetch(`http://localhost:1111/wish/list/${userId}`);
+      const response = await fetch(`${URL}/wish/list/${userId}`);
       const result = await response.json();
 
       if (result.status === 'success') {
@@ -69,7 +70,7 @@ export default function WishlistComponent(props) {
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
-      const response = await fetch('http://localhost:1111/wish/remove', {
+      const response = await fetch(`${URL}/wish/remove`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

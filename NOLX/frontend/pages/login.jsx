@@ -2,6 +2,8 @@ import { View, StyleSheet, Image } from 'react-native';
 import { Text, Button, TextInput } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState } from 'react';
+const URL='https://info-bxcl.onrender.com'
+
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -9,7 +11,7 @@ export default function Login({ navigation }) {
 
     const onLogin = async () => {
         try {
-            const response = await fetch("http://localhost:1111/user/login", {
+            const response = await fetch(`${URL}/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+const URL='https://info-bxcl.onrender.com'
 
 export default function SellDashboard({ navigation }) {
   const [sellerProducts, setSellerProducts] = useState([]);
@@ -37,7 +38,7 @@ export default function SellDashboard({ navigation }) {
   const fetchSellerProducts = async () => {
     try {
       setRefreshing(true);
-      const response = await axios.get('http://localhost:1111/product/');
+      const response = await axios.get(`${URL}/product/`);
       const products = response.data.data;
       const filteredProducts = products.filter(item => item.seller_id == userId);
       setSellerProducts(filteredProducts);

@@ -4,6 +4,7 @@ import { Button, Card } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCart } from '../user/CartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+const URL='https://info-bxcl.onrender.com'
 
 export default function ItemDetails() {
   const route = useRoute();
@@ -39,7 +40,7 @@ export default function ItemDetails() {
     try {
       const productId = item.product_id;  // Assuming `item.id` is the correct product ID
   
-      const response = await fetch('http://localhost:1111/wish/add', {
+      const response = await fetch(`${URL}/wish/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

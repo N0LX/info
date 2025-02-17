@@ -4,6 +4,7 @@ import { Text, Button, TextInput, Card } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Dropdown } from "react-native-element-dropdown";
 import * as ImagePicker from "expo-image-picker";
+const URL='https://info-bxcl.onrender.com'
 
 export default function AddItem({ navigation }) {
   const [productName, setProductName] = useState("");
@@ -38,7 +39,7 @@ export default function AddItem({ navigation }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:1111/category/all");
+        const response = await fetch(`${URL}/category/all`);
         const result = await response.json();
         console.log("Categories fetched:", result);
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -83,7 +84,7 @@ export default function AddItem({ navigation }) {
       setImage(selectedImage.uri); 
 
       try {
-        const response = await fetch("http://localhost:1111/upload/upload", {
+        const response = await fetch(`${URL}/upload/upload`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export default function AddItem({ navigation }) {
         image_url: imageUrl,
       };
 
-      const response = await fetch("http://localhost:1111/product/add", {
+      const response = await fetch(`${URL}/product/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

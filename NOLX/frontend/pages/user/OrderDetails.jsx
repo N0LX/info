@@ -2,6 +2,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button, ActivityIndicator, Card, Divider } from 'react-native-paper';
 import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+const URL='https://info-bxcl.onrender.com'
 
 export default function OrderDetails() {
   const navigation = useNavigation();
@@ -12,7 +13,7 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:1111/order/get/${order_id}`)
+    fetch(`${URL}/order/get/${order_id}`)
       .then((response) => response.json())
       .then((data) => {
         setOrder(data);

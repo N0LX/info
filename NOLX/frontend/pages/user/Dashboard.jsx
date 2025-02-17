@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, Image } from 
 import { Text, Button, IconButton, Searchbar, Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+const URL='https://info-bxcl.onrender.com'
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +19,7 @@ export default function Dashboard() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get('http://localhost:1111/product')  
+    axios.get(`${URL}/product`)  
       .then((response) => {
         const products = response.data.data;
         setTodaysPicks(products.slice(0, 6));

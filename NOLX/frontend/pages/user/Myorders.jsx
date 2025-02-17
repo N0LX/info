@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+const URL='https://info-bxcl.onrender.com'
 
 export default function MyOrders() {
   const navigation = useNavigation();
@@ -37,7 +38,7 @@ export default function MyOrders() {
   const fetchOrders = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://localhost:1111/order/user/${userId}`, {
+      const response = await axios.get(`${URL}/order/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(response.data);

@@ -7,7 +7,7 @@ import { Buffer } from "buffer";
 import axios from "axios";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const API_BASE_URL = "http://localhost:1111";
+const URL='https://info-bxcl.onrender.com'
 
 export default function Account() {
   const navigation = useNavigation();
@@ -40,7 +40,7 @@ export default function Account() {
 
       try {
         const token = await AsyncStorage.getItem("authToken");
-        const response = await axios.get(`${API_BASE_URL}/user/${userId}`, {
+        const response = await axios.get(`${URL}/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -71,7 +71,7 @@ export default function Account() {
     try {
       const token = await AsyncStorage.getItem("authToken");
       const response = await axios.post(
-        `${API_BASE_URL}/user/verify-password`,
+        `${URL}/user/verify-password`,
         { userId, password },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -99,7 +99,7 @@ export default function Account() {
       };
 
       const response = await axios.put(
-        `${API_BASE_URL}/user/${userId}`,
+        `${URL}/user/${userId}`,
         updatedFields,
         { headers: { Authorization: `Bearer ${token}` } }
       );

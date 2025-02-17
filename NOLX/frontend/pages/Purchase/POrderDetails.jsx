@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, Alert } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+const URL='https://info-bxcl.onrender.com'
 
 export default function POrderDetails({ route }) {
   const { cartItems = [], totalPrice = 0 } = route.params || {};
@@ -68,7 +69,7 @@ export default function POrderDetails({ route }) {
     console.log("Sending Payment Data:", paymentData); // Log payment data being sent
 
     try {
-      let response = await fetch('http://localhost:1111/payment/add', {
+      let response = await fetch(`${URL}/payment/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paymentData),
@@ -120,7 +121,7 @@ export default function POrderDetails({ route }) {
     console.log("📦 Order Data Being Sent:", orderData); // Log order data
 
     try {
-      let response = await fetch('http://localhost:1111/order/add', {
+      let response = await fetch(`${URL}/order/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
